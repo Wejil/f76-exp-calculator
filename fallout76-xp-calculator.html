@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vault-Tec XP Calculator | Fallout 76</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Teko:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pip-green: #39ff14;
+    --pip-green-dim: #1a7a0a;
+    --pip-green-glow: rgba(57,255,20,0.4);
+    --amber: #ffb000;
+    --amber-dim: #7a5500;
+    --red: #ff3a20;
+    --dark-bg: #050e05;
+    --panel-bg: #060f06;
+    --panel-border: #1a3d1a;
+    --scanline: rgba(0,0,0,0.15);
+    --text: #c8f5c8;
+    --text-dim: #5a8a5a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark-bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* CRT scanlines overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      var(--scanline) 0px,
+      var(--scanline) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* Vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.75) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    position: relative;
+    text-align: center;
+    padding: 40px 20px 30px;
+    border-bottom: 2px solid var(--pip-green-dim);
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(57,255,20,0.08) 0%, transparent 70%);
+  }
+
+  .vault-logo {
+    font-family: 'Teko', sans-serif;
+    font-size: clamp(14px, 3vw, 18px);
+    color: var(--amber);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.85;
+  }
+
+  h1 {
+    font-family: 'Teko', sans-serif;
+    font-size: clamp(38px, 8vw, 80px);
+    font-weight: 700;
+    color: var(--pip-green);
+    text-shadow: 0 0 20px var(--pip-green-glow), 0 0 60px rgba(57,255,20,0.2);
+    line-height: 1;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    animation: flicker 8s infinite;
+  }
+
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(10px, 2vw, 13px);
+    color: var(--text-dim);
+    margin-top: 10px;
+    letter-spacing: 3px;
+  }
+
+  @keyframes flicker {
+    0%,95%,100% { opacity: 1; }
+    96% { opacity: 0.85; }
+    97% { opacity: 1; }
+    98% { opacity: 0.6; }
+    99% { opacity: 1; }
+  }
+
+  /* ─── LAYOUT ─── */
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  /* ─── PANELS ─── */
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .panel:hover { border-color: var(--pip-green-dim); }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--pip-green), transparent);
+    opacity: 0.5;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(57,255,20,0.04);
+  }
+
+  .panel-icon {
+    font-size: 20px;
+    filter: drop-shadow(0 0 6px var(--pip-green-glow));
+  }
+
+  .panel-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--pip-green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .panel-body {
+    padding: 18px 20px;
+  }
+
+  /* ─── SECTION LABELS ─── */
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    margin-top: 18px;
+    opacity: 0.8;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ─── CHECKBOX ITEMS ─── */
+  .check-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid transparent;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .check-item:hover {
+    background: rgba(57,255,20,0.06);
+    border-color: var(--pip-green-dim);
+  }
+
+  .check-item.active {
+    background: rgba(57,255,20,0.1);
+    border-color: var(--pip-green-dim);
+  }
+
+  .check-item input[type="checkbox"] {
+    appearance: none;
+    width: 16px; height: 16px;
+    border: 1px solid var(--pip-green-dim);
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .check-item input[type="checkbox"]:checked {
+    background: var(--pip-green-dim);
+    border-color: var(--pip-green);
+    box-shadow: 0 0 8px var(--pip-green-glow);
+  }
+
+  .check-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px; left: 1px;
+    color: var(--pip-green);
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .item-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .item-bonus {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+
+  .item-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 26px;
+    margin-top: -2px;
+    margin-bottom: 2px;
+  }
+
+  /* ─── MULTIPLIER INPUT ─── */
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .input-group label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pip-input {
+    flex: 1;
+    background: rgba(57,255,20,0.05);
+    border: 1px solid var(--pip-green-dim);
+    color: var(--pip-green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    padding: 8px 14px;
+    border-radius: 2px;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .pip-input:focus {
+    border-color: var(--pip-green);
+    box-shadow: 0 0 10px var(--pip-green-glow);
+    background: rgba(57,255,20,0.08);
+  }
+
+  .pip-select {
+    flex: 1;
+    background: rgba(57,255,20,0.05);
+    border: 1px solid var(--pip-green-dim);
+    color: var(--pip-green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2339ff14' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  .pip-select:focus {
+    border-color: var(--pip-green);
+    box-shadow: 0 0 10px var(--pip-green-glow);
+  }
+
+  .pip-select option {
+    background: #050e05;
+    color: var(--pip-green);
+  }
+
+  /* ─── PERK CARDS ─── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  @media (max-width: 500px) {
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+
+  .perk-card {
+    border: 1px solid var(--panel-border);
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    border-radius: 2px;
+  }
+
+  .perk-card:hover {
+    background: rgba(57,255,20,0.06);
+    border-color: var(--pip-green-dim);
+  }
+
+  .perk-card.active {
+    background: rgba(57,255,20,0.1);
+    border-color: var(--pip-green);
+    box-shadow: 0 0 12px rgba(57,255,20,0.15);
+  }
+
+  .perk-card.active::after {
+    content: '✓';
+    position: absolute;
+    top: 6px; right: 8px;
+    color: var(--pip-green);
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .perk-name {
+    font-family: 'Teko', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 1px;
+    line-height: 1.2;
+  }
+
+  .perk-card.active .perk-name { color: var(--pip-green); }
+
+  .perk-stat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    margin-top: 3px;
+  }
+
+  .perk-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* ─── RESULTS ─── */
+  .results-panel {
+    background: rgba(57,255,20,0.04);
+    border: 2px solid var(--pip-green-dim);
+    padding: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 100% 100% at 50% 50%, rgba(57,255,20,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .results-panel::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--pip-green) 30%, var(--pip-green) 70%, transparent 100%);
+    box-shadow: 0 0 20px var(--pip-green-glow);
+  }
+
+  .results-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .base-xp-display {
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .xp-display {
+    font-family: 'Teko', sans-serif;
+    font-size: clamp(60px, 10vw, 100px);
+    font-weight: 700;
+    color: var(--pip-green);
+    text-shadow: 0 0 30px var(--pip-green-glow), 0 0 80px rgba(57,255,20,0.15);
+    line-height: 1;
+    letter-spacing: 4px;
+    transition: all 0.4s;
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { text-shadow: 0 0 30px var(--pip-green-glow), 0 0 80px rgba(57,255,20,0.15); }
+    50% { text-shadow: 0 0 50px rgba(57,255,20,0.7), 0 0 100px rgba(57,255,20,0.25); }
+  }
+
+  .xp-unit {
+    font-family: 'Teko', sans-serif;
+    font-size: 28px;
+    color: var(--pip-green-dim);
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+
+  .multiplier-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--amber);
+    margin-top: 12px;
+    padding: 10px 20px;
+    border: 1px solid var(--amber-dim);
+    display: inline-block;
+    background: rgba(255,176,0,0.05);
+  }
+
+  /* Breakdown */
+  .breakdown {
+    margin-top: 24px;
+    text-align: left;
+    border-top: 1px solid var(--panel-border);
+    padding-top: 20px;
+  }
+
+  .breakdown-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(26,61,26,0.5);
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+
+  .breakdown-row .b-name {
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  .breakdown-row .b-val {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--amber);
+    font-size: 12px;
+  }
+
+  .breakdown-row.total {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--pip-green-dim);
+    border-bottom: none;
+  }
+
+  .breakdown-row.total .b-name {
+    color: var(--pip-green);
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .breakdown-row.total .b-val {
+    color: var(--pip-green);
+    font-size: 16px;
+    text-shadow: 0 0 10px var(--pip-green-glow);
+  }
+
+  /* ─── RESET BUTTON ─── */
+  .btn-reset {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 20px;
+  }
+
+  .btn-reset:hover {
+    background: rgba(255,58,32,0.1);
+    box-shadow: 0 0 20px rgba(255,58,32,0.3);
+  }
+
+  /* ─── BASE XP INPUT ─── */
+  .base-xp-section {
+    background: rgba(255,176,0,0.03);
+    border: 1px solid var(--amber-dim);
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .base-xp-section .panel-title { color: var(--amber); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center;
+    padding: 20px;
+    border-top: 1px solid var(--panel-border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .results-panel { padding: 20px; }
+  }
+
+  /* ─── TOOLTIP ─── */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a1a0a;
+    border: 1px solid var(--pip-green-dim);
+    color: var(--text);
+    font-size: 12px;
+    padding: 6px 10px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  /* Animated number */
+  .xp-display { transition: color 0.3s; }
+  .xp-display.updated {
+    animation: blink 0.3s;
+  }
+  @keyframes blink {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--pip-green-dim); }
+
+  .tag {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .tag-intel { background: rgba(0,150,255,0.15); border: 1px solid rgba(0,150,255,0.4); color: #5af; }
+  .tag-food { background: rgba(255,176,0,0.12); border: 1px solid rgba(255,176,0,0.3); color: var(--amber); }
+  .tag-mut { background: rgba(180,0,255,0.12); border: 1px solid rgba(180,0,255,0.3); color: #c86fff; }
+  .tag-event { background: rgba(255,58,32,0.12); border: 1px solid rgba(255,58,32,0.3); color: #ff7a66; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="vault-logo">Vault-Tec Industries · Appalachia Division</div>
+  <h1>XP Calculator</h1>
+  <div class="subtitle">// FALLOUT 76 · EXPERIENCE POINT OPTIMIZER · BUILD 2.9.6 //</div>
+</header>
+
+<div class="container">
+
+  <!-- BASE XP -->
+  <div class="base-xp-section">
+    <div class="panel-header" style="padding:0 0 12px; border:none; background:none;">
+      <span class="panel-icon">⚡</span>
+      <span class="panel-title" style="color:var(--amber)">Base Experience Points</span>
+    </div>
+    <div class="grid" style="margin-bottom:0">
+      <div class="input-group">
+        <label>Base XP of the action</label>
+        <div class="input-row">
+          <input class="pip-input" type="number" id="baseXP" value="100" min="1" max="99999" placeholder="e.g. 100">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Action type</label>
+        <select class="pip-select" id="actionType">
+          <option value="1">Custom (use value above)</option>
+          <optgroup label="── Killing Enemies ──">
+            <option value="10">Scorched (×1 – ~10 XP)</option>
+            <option value="30">Ghoul / Feral Ghoul (~30 XP)</option>
+            <option value="50">Super Mutant (~50 XP)</option>
+            <option value="75">Deathclaw (~75 XP)</option>
+            <option value="150">Scorchbeast (~150 XP)</option>
+            <option value="300">Scorchbeast Queen (~300 XP)</option>
+            <option value="350">Wendigo Colossus (~350 XP)</option>
+          </optgroup>
+          <optgroup label="── Quests ──">
+            <option value="400">Daily Quest (~400 XP)</option>
+            <option value="600">Side Quest (~600 XP)</option>
+            <option value="1200">Main Quest (~1 200 XP)</option>
+            <option value="1500">Seasonal Event Quest (~1 500 XP)</option>
+          </optgroup>
+          <optgroup label="── Other ──">
+            <option value="20">Crafting / Modding Item (~20 XP)</option>
+            <option value="15">Discovering Location (~15 XP)</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- FOOD & DRINKS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-icon">🥩</span>
+        <span class="panel-title">Food & Drinks</span>
+      </div>
+      <div class="panel-body">
+        <div class="section-label">Intelligence Boosters (affect XP)</div>
+        <div class="check-list" id="foodList">
+          <!-- populated by JS -->
+        </div>
+        <div class="section-label" style="margin-top:14px">XP Direct Bonuses</div>
+        <div class="check-list" id="xpFoodList"></div>
+      </div>
+    </div>
+
+    <!-- MUTATIONS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-icon">☢️</span>
+        <span class="panel-title">Mutations</span>
+      </div>
+      <div class="panel-body">
+        <div class="section-label">Active Mutations</div>
+        <div class="check-list" id="mutationList"></div>
+        <div class="section-label" style="margin-top:14px">Starched Genes / Strange in Numbers</div>
+        <div class="check-list" id="mutExtras"></div>
+      </div>
+    </div>
+
+    <!-- PERK CARDS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-icon">🃏</span>
+        <span class="panel-title">Perk Cards</span>
+      </div>
+      <div class="panel-body">
+        <div class="section-label">Intelligence Perks (increase XP gain)</div>
+        <div class="cards-grid" id="perkList"></div>
+        <div class="section-label" style="margin-top:14px">XP Perks (direct multipliers)</div>
+        <div class="cards-grid" id="xpPerkList"></div>
+      </div>
+    </div>
+
+    <!-- BONUSES & EVENTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-icon">🎯</span>
+        <span class="panel-title">Bonuses & Events</span>
+      </div>
+      <div class="panel-body">
+        <div class="section-label">Team & Situational Bonuses</div>
+        <div class="check-list" id="bonusList"></div>
+        <div class="section-label" style="margin-top:14px">Intelligence SPECIAL Stat</div>
+        <div class="input-group">
+          <label>Current INT value (1–20, base affects XP by +3% per point)</label>
+          <div class="input-row">
+            <input class="pip-input" type="number" id="intStat" value="6" min="1" max="20" style="max-width:100px">
+            <span style="font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--text-dim)">
+              / 20 · bonus: <span id="intBonus" style="color:var(--amber)">+15%</span>
+            </span>
+          </div>
+        </div>
+        <div class="section-label" style="margin-top:14px">Server / Weekend Bonus</div>
+        <div class="check-list" id="serverBonusList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-panel">
+    <div class="results-label">// VAULT-TEC EXPERIENCE PROJECTION //</div>
+    <div class="base-xp-display">Base: <span id="dispBase">100</span> XP</div>
+    <div class="xp-display" id="finalXP">100</div>
+    <div class="xp-unit">EXPERIENCE POINTS</div>
+    <div class="multiplier-display" id="totalMult">TOTAL MULTIPLIER: ×1.00</div>
+
+    <div class="breakdown" id="breakdownSection">
+      <div class="breakdown-title">// Multiplier Breakdown //</div>
+      <div id="breakdownRows"></div>
+    </div>
+
+    <button class="btn-reset" onclick="resetAll()">⚠ Reset All Selections</button>
+  </div>
+
+</div>
+
+<footer>
+  VAULT-TEC XP CALCULATOR · DATA COMPILED FROM FALLOUT 76 PATCH NOTES · FOR ENTERTAINMENT PURPOSES ONLY<br>
+  <span style="opacity:0.5">Not affiliated with Bethesda Game Studios</span>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────
+
+// intMultiplier: per-point INT contribution to XP (approx 3% each)
+const INT_PER_POINT = 0.03; // 3% per INT above 0
+
+const foods = [
+  { id:'f1',  name:'Grilled Radstag',       bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f2',  name:'Nuka-Cola Quantum',      bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f3',  name:'Mentats',                bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f4',  name:'Grape Mentats',          bonus:'+5 INT',  intBonus: 5,  tag:'food' },
+  { id:'f5',  name:'Orange Mentats',         bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f6',  name:'Berry Mentats',          bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f7',  name:'Cranberry Relish',       bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f8',  name:'Noodle Cup',             bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f9',  name:'Brahmin Milk',           bonus:'+2 INT',  intBonus: 2,  tag:'food' },
+  { id:'f10', name:'Cram',                   bonus:'+1 INT',  intBonus: 1,  tag:'food' },
+];
+
+const xpFoods = [
+  { id:'xf1', name:'Brain Fungus (cooked)',  bonus:'+5% XP',  xpBonus: 0.05, tag:'food', note:'Cooked Brain Fungus Soup' },
+  { id:'xf2', name:'Cranberry Moonshine',    bonus:'+5% XP',  xpBonus: 0.05, tag:'food' },
+  { id:'xf3', name:'Mirelurk Egg Omelette',  bonus:'+5% XP',  xpBonus: 0.05, tag:'food' },
+  { id:'xf4', name:'Steeped Tato Flower',    bonus:'+5% XP',  xpBonus: 0.05, tag:'food', note:'Tea variant' },
+];
+
+const mutations = [
+  { id:'m1', name:'Egg Head',     bonus:'+6 INT, –3 STR/END', intBonus: 6, tag:'mut' },
+  { id:'m2', name:'Twisted Muscles', bonus:'+25% melee dmg, –50% gun acc', intBonus: 0, tag:'mut', note:'No direct XP/INT bonus' },
+  { id:'m3', name:'Marsupial',    bonus:'+20 carry, +jump height', intBonus: 0, tag:'mut', note:'No direct INT bonus' },
+  { id:'m4', name:'Speed Demon',  bonus:'+20% move speed, faster reload', intBonus: 0, tag:'mut', note:'Useful for fast farming' },
+  { id:'m5', name:'Carnivore',    bonus:'+2× meat nutrition, no disease from meat', intBonus: 0, tag:'mut', note:'Doubles food bonuses from meat dishes' },
+];
+
+const mutExtras = [
+  { id:'me1', name:'Strange in Numbers', bonus:'+25% mutation bonuses if teammate also has mutations', xpBonus: 0, intBonusMult: 0.25, tag:'mut', note:'Perk card — boosts all active mutation bonuses by 25%' },
+];
+
+const perks = [
+  { id:'p1', name:'Hard Bargain',      stat:'INT 1',  bonus:'+1 INT', intBonus: 1,  desc:'Rank 1 gives +1 INT' },
+  { id:'p2', name:'Perception (SPECIAL)', stat:'INT 6', bonus:'+1 INT', intBonus: 1,  desc:'Some INT perks passively raise effective INT' },
+];
+
+const xpPerks = [
+  { id:'xp1', name:'Inspirational',    stat:'CHA 3', bonus:'+5/10/15% XP in team', xpBonus: 0.05, desc:'Rank 1: +5% XP when on a team' },
+  { id:'xp2', name:'Inspirational R2', stat:'CHA 3', bonus:'+10% XP (Rank 2)', xpBonus: 0.10, desc:'Rank 2 replaces Rank 1 — do not stack' },
+  { id:'xp3', name:'Inspirational R3', stat:'CHA 3', bonus:'+15% XP (Rank 3)', xpBonus: 0.15, desc:'Rank 3 replaces lower ranks — do not stack' },
+  { id:'xp4', name:'Tenderizer',       stat:'STR 9', bonus:'+10% XP vs softened enemies', xpBonus: 0.10, desc:'Enemies you mark deal +10% XP (with team)' },
+  { id:'xp5', name:'Rad Sponge',       stat:'END 1', bonus:'+25% XP while in rads', xpBonus: 0.25, desc:'Active in Nuke zones or high-radiation areas' },
+  { id:'xp6', name:'Curator',          stat:'INT 4', bonus:'+100% XP from notes/mags', xpBonus: 0, desc:'Doubles XP from holotapes & magazines (not combat)', special:'curator' },
+];
+
+const bonuses = [
+  { id:'b1', name:'On a Team',              bonus:'+25% XP (base team bonus)',  xpBonus: 0.25, tag:'event' },
+  { id:'b2', name:'Leader Perk active',     bonus:'+Variable XP (Luck 8)',      xpBonus: 0.05, tag:'event', note:'Luck-based — approx +5% avg' },
+  { id:'b3', name:'Well-Rested (bed sleep)', bonus:'+5% XP',                    xpBonus: 0.05, tag:'event' },
+  { id:'b4', name:'Lover\'s Embrace',       bonus:'+5% XP (slept with partner)', xpBonus: 0.05, tag:'event' },
+  { id:'b5', name:'Encampment Tent (Dweller)', bonus:'+5% XP',                  xpBonus: 0.05, tag:'event', note:'Only with Fallout 1st membership tent' },
+  { id:'b6', name:'Double XP Weekend',      bonus:'+100% XP (event)',            xpBonus: 1.00, tag:'event' },
+  { id:'b7', name:'Nuke Zone Active (area)', bonus:'+XP from irradiated zone',   xpBonus: 0.25, tag:'event', note:'Tied to Rad Sponge or high-rad areas' },
+];
+
+const serverBonuses = [
+  { id:'sb1', name:'XP Booster (Atom Shop)', bonus:'+25% XP (30-min booster)', xpBonus: 0.25, tag:'event' },
+  { id:'sb2', name:'Daily Ops XP Bonus',      bonus:'+50% XP (Daily Op active)', xpBonus: 0.50, tag:'event' },
+  { id:'sb3', name:'Seasonal XP Challenge',   bonus:'+15% XP (seasonal event)',  xpBonus: 0.15, tag:'event' },
+];
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let selected = new Set();
+
+// ─────────────────────────────────────────────
+//  RENDER HELPERS
+// ─────────────────────────────────────────────
+function tagHTML(type) {
+  const map = { food:'FOOD', mut:'MUTATION', event:'EVENT', intel:'INT' };
+  const cls = { food:'tag-food', mut:'tag-mut', event:'tag-event', intel:'tag-intel' };
+  return `<span class="tag ${cls[type]||'tag-food'}">${map[type]||type}</span>`;
+}
+
+function renderCheckList(containerId, items, extraClass='') {
+  const el = document.getElementById(containerId);
+  el.innerHTML = items.map(it => `
+    <div class="check-item ${extraClass}" id="wrap_${it.id}" onclick="toggle('${it.id}')">
+      <input type="checkbox" id="${it.id}" onclick="event.stopPropagation(); toggle('${it.id}')">
+      <div style="flex:1">
+        <div class="item-name">${it.name}${tagHTML(it.tag||'food')}</div>
+        ${it.note ? `<div class="item-note">${it.note}</div>` : ''}
+      </div>
+      <span class="item-bonus">${it.bonus}</span>
+    </div>
+  `).join('');
+}
+
+function renderCards(containerId, items) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = items.map(it => `
+    <div class="perk-card" id="wrap_${it.id}" onclick="toggle('${it.id}')">
+      <div class="perk-name">${it.name}</div>
+      <div class="perk-stat">${it.stat} · ${it.bonus}</div>
+      <div class="perk-desc">${it.desc}</div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+//  TOGGLE
+// ─────────────────────────────────────────────
+function toggle(id) {
+  const el = document.getElementById(id);
+  const wrap = document.getElementById('wrap_'+id);
+  if (!el || !wrap) return;
+
+  if (selected.has(id)) {
+    selected.delete(id);
+    wrap.classList.remove('active');
+    if (el.type === 'checkbox') el.checked = false;
+  } else {
+    selected.add(id);
+    wrap.classList.add('active');
+    if (el.type === 'checkbox') el.checked = true;
+  }
+  calculate();
+}
+
+// ─────────────────────────────────────────────
+//  CALCULATE
+// ─────────────────────────────────────────────
+function calculate() {
+  const actionSel = document.getElementById('actionType');
+  const baseXPEl = document.getElementById('baseXP');
+  let base = 100;
+  if (actionSel.value !== '1') {
+    base = parseFloat(actionSel.value);
+    baseXPEl.value = base;
+  } else {
+    base = parseFloat(baseXPEl.value) || 100;
+  }
+
+  const intStat = parseInt(document.getElementById('intStat').value) || 6;
+  // INT bonus: each point above 0 adds 3% (effective formula in FO76)
+  const intBase = intStat * INT_PER_POINT;
+
+  // Collect extra INT from food/mutations/perks
+  let extraINT = 0;
+  let strangeInNumbers = selected.has('me1');
+
+  [...foods, ...perks].forEach(it => {
+    if (selected.has(it.id) && it.intBonus) extraINT += it.intBonus;
+  });
+  mutations.forEach(it => {
+    if (selected.has(it.id) && it.intBonus) {
+      let bonus = it.intBonus;
+      if (strangeInNumbers) bonus *= 1.25;
+      extraINT += bonus;
+    }
+  });
+
+  // Egg Head with Strange in Numbers: already computed above
+  const totalINT = intStat + extraINT;
+  const intMult = totalINT * INT_PER_POINT;
+
+  // Collect direct XP multipliers
+  let directXPBonus = 0;
+  let breakdown = [];
+
+  // INT contribution
+  breakdown.push({ name:`INT ${totalINT.toFixed(1)} (base ${intStat} + ${extraINT.toFixed(1)} bonus)`, val: `+${(intMult*100).toFixed(0)}%` });
+
+  [...xpFoods].forEach(it => {
+    if (selected.has(it.id)) {
+      directXPBonus += it.xpBonus;
+      breakdown.push({ name: it.name, val: `+${(it.xpBonus*100).toFixed(0)}%` });
+    }
+  });
+
+  [...xpPerks].forEach(it => {
+    if (selected.has(it.id) && it.xpBonus && it.special !== 'curator') {
+      directXPBonus += it.xpBonus;
+      breakdown.push({ name: it.name, val: `+${(it.xpBonus*100).toFixed(0)}%` });
+    }
+  });
+
+  [...bonuses, ...serverBonuses].forEach(it => {
+    if (selected.has(it.id) && it.xpBonus) {
+      directXPBonus += it.xpBonus;
+      breakdown.push({ name: it.name, val: `+${(it.xpBonus*100).toFixed(0)}%` });
+    }
+  });
+
+  // Carnivore: doubles bonus from meat-based food INT bonuses
+  if (selected.has('m5')) {
+    // Find selected meat foods INT
+    const meatFoods = ['f1','f8']; // Grilled Radstag, Noodle Cup (approx)
+    meatFoods.forEach(fid => {
+      if (selected.has(fid)) {
+        const f = foods.find(x=>x.id===fid);
+        if (f) {
+          extraINT += f.intBonus; // already added, note it
+        }
+      }
+    });
+    breakdown.push({ name:'Carnivore (doubles meat food INT)', val:'×meat bonuses' });
+  }
+
+  const totalMult = 1 + intMult + directXPBonus;
+  const finalXP = Math.round(base * totalMult);
+
+  // Update UI
+  document.getElementById('dispBase').textContent = base.toLocaleString();
+  const xpEl = document.getElementById('finalXP');
+  xpEl.textContent = finalXP.toLocaleString();
+  xpEl.classList.remove('updated');
+  void xpEl.offsetWidth;
+  xpEl.classList.add('updated');
+
+  document.getElementById('totalMult').textContent = `TOTAL MULTIPLIER: ×${totalMult.toFixed(3)}`;
+  document.getElementById('intBonus').textContent = `+${(intBase*100).toFixed(0)}%`;
+
+  // Breakdown
+  const rows = document.getElementById('breakdownRows');
+  if (breakdown.length === 0) {
+    rows.innerHTML = `<div class="breakdown-row"><span class="b-name">No modifiers active</span><span class="b-val">—</span></div>`;
+  } else {
+    rows.innerHTML = breakdown.map(r=>`
+      <div class="breakdown-row">
+        <span class="b-name">${r.name}</span>
+        <span class="b-val">${r.val}</span>
+      </div>
+    `).join('') + `
+      <div class="breakdown-row total">
+        <span class="b-name">Final XP</span>
+        <span class="b-val">${finalXP.toLocaleString()} XP (×${totalMult.toFixed(3)})</span>
+      </div>`;
+  }
+}
+
+function resetAll() {
+  selected.clear();
+  document.querySelectorAll('.check-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.perk-card').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
+  document.getElementById('baseXP').value = 100;
+  document.getElementById('actionType').value = '1';
+  document.getElementById('intStat').value = 6;
+  calculate();
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+function init() {
+  renderCheckList('foodList', foods);
+  renderCheckList('xpFoodList', xpFoods);
+  renderCheckList('mutationList', mutations);
+  renderCheckList('mutExtras', mutExtras);
+  renderCheckList('bonusList', bonuses);
+  renderCheckList('serverBonusList', serverBonuses);
+  renderCards('perkList', perks);
+  renderCards('xpPerkList', xpPerks);
+
+  document.getElementById('baseXP').addEventListener('input', () => {
+    document.getElementById('actionType').value = '1';
+    calculate();
+  });
+  document.getElementById('actionType').addEventListener('change', calculate);
+  document.getElementById('intStat').addEventListener('input', () => {
+    const v = parseInt(document.getElementById('intStat').value)||1;
+    document.getElementById('intBonus').textContent = `+${(v*INT_PER_POINT*100).toFixed(0)}%`;
+    calculate();
+  });
+
+  calculate();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
