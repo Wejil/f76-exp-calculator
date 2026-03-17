@@ -71,39 +71,38 @@
 <body>
 
 <div class="pip-boy">
-    <h1>XP CALCULATOR v3.0</h1>
+    <h1>XP CALCULATOR v0.1</h1>
     <div class="form-group">
-        <label>XP BASE NEMICO:</label>
+        <label>XP BASE:</label>
         <input type="number" id="baseXp" value="160">
     </div>
     <div class="form-group">
-        <label>INTELLIGENZA (INT):</label>
+        <label>INTELLIGENCE (INT):</label>
         <input type="number" id="intStat" value="15">
     </div>
     <div class="form-group">
-        <label>MUTAZIONE:</label>
+        <label>MUTATION:</label>
         <select id="mutation" onchange="updateFoodOptions()">
             <option value="none">Nessuna</option>
-            <option value="herbivore">Erbivoro (Piante x2)</option>
-            <option value="carnivore">Carnivoro (Carne x2)</option>
+            <option value="herbivore">Herbivore (Plants x2)</option>
+            <option value="carnivore">Carnivore (Meat x2)</option>
         </select>
     </div>
     <div class="checkbox-grid" id="food-options"></div>
     <div class="checkbox-grid">
-        <div class="checkbox-item"><input type="checkbox" id="sin"><label>Squadra Strana</label></div>
-        <div class="checkbox-item"><input type="checkbox" id="inspirational"><label>Ispirazione</label></div>
-        <div class="checkbox-item"><input type="checkbox" id="lunchboxes"><label>4 Cestini</label></div>
-        <div class="checkbox-item"><input type="checkbox" id="leader"><label>Statuina Leader</label></div>
+        <div class="checkbox-item"><input type="checkbox" id="sin"><label>Strange in Numbers</label></div>
+        <div class="checkbox-item"><input type="checkbox" id="inspirational"><label>Inspirational</label></div>
+        <div class="checkbox-item"><input type="checkbox" id="lunchboxes"><label>4 Lunchboxes</label></div>
+        <div class="checkbox-item"><input type="checkbox" id="leader"><label>Leader Bobblehead</label></div>
     </div>
-    <button onclick="calculate()">ESEGUI CALCOLO</button>
-    <div id="result-box">TOTALE STIMATO:<span class="xp-val" id="totalXp">0 XP</span></div>
+    <button onclick="calculate()">CALCULATE</button>
+    <div id="result-box">TOTAL AMOUNT ESTEEMED:<span class="xp-val" id="totalXp">0 XP</span></div>
 </div>
 
 <script>
     const foodData = {
-        herbivore: [{name: "Relish Mirtilli", bonus: 0.10}, {name: "Bombe Cervello (INT)", isInt: true, val: 3}],
-        carnivore: [{name: "Stufato Scoiattolo", bonus: 0.10}, {name: "Cervello Scorch. (INT)", isInt: true, val: 3}],
-        none: [{name: "Zuppa Mirtilli", bonus: 0.05}]
+        herbivore: [{name: "Cranbelly Relish", bonus: 0.10}, {name: "Brain Bombs (INT)", isInt: true, val: 3}],
+        carnivore: [{name: "Tasty squirrel stew", bonus: 0.10}, {name: "Scorchbeast brain. (INT)", isInt: true, val: 3}],
     };
 
     function updateFoodOptions() {
